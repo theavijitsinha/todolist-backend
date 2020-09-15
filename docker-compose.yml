@@ -1,0 +1,45 @@
+version: '3'
+  
+services:
+  db:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_pw
+      MYSQL_DATABASE: todolist
+      MYSQL_USER: todolist
+      MYSQL_PASSWORD_FILE: /secrets/mysql-password
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+    volumes:
+      - './secrets:/secrets'
+  backend:
+    build: .
+    command: npm start
+    environment:
+        DB_USER: avijit
+        DB_HOST: db
+        DB_NAME: todolist_db
+        DB_PASS_FILE: /secrets/mysql-password
+        NODE_ENV: production
+    volumes:
+      - './secrets:/secrets'
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+  backend-dev:
+    build: .
+    command: npx nodemon
+    environment:
+        DB_USER: todolist
+        DB_HOST: db
+        DB_NAME: todolist
+        DB_PASS_FILE: /secrets/mysql-password
+    volumes:
+      - '.:/usr/src/app'
+      - './secrets:/secrets'
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
