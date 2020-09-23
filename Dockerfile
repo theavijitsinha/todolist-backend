@@ -30,4 +30,4 @@ WORKDIR /usr/src/app
 
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 
-CMD ["npx", "nodemon"]
+CMD [ "npx", "nodemon" ]
