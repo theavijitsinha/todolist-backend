@@ -6,9 +6,6 @@ const { Task } = require('./model');
 
 require('./model');
 
-var tasks = {};
-var nextIndex = 0;
-
 // Router for '/tasks' path
 exports.router = function () {
     var taskRouter = express.Router();
