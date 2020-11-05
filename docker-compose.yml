@@ -12,10 +12,11 @@ services:
       MYSQL_PASSWORD_FILE: /secrets/mysql-password
       MYSQL_RANDOM_ROOT_PASSWORD: "yes"
     volumes:
-      - './secrets:/secrets'
-  backend-base:
+      - './backend/secrets:/secrets'
+  backend:
     build:
-      context: .
+      context: ./backend
+    image: todolist-backend:latest
     environment:
         DB_USER: todolist
         DB_HOST: db
@@ -23,23 +24,24 @@ services:
         DB_PASS_FILE: /secrets/mysql-password
     ports:
       - "8080:8080"
-  backend:
-    extends: backend-base
-    build:
-      target: prod
-    image: todolist-backend:latest
     volumes:
-      - './secrets:/secrets'
+      - './backend/secrets:/secrets'
     depends_on:
       - db
-  backend-dev:
-    extends: backend-base
+  dev:
     build:
-      target: dev
-    image: todolist-backend-dev:latest
+      context: .
+    image: todolist-dev:latest
+    environment:
+        DB_USER: todolist
+        DB_HOST: db
+        DB_NAME: todolist
+        DB_PASS_FILE: /secrets/mysql-password
+    ports:
+      - "8080:8080"
     volumes:
-      - '.:/usr/src/app'
-      - '/usr/src/app/node_modules'
-      - './secrets:/secrets'
+      - './:/usr/src/app'
+      - '/usr/src/app/backend/node_modules'
+      - './backend/secrets:/secrets'
     depends_on:
       - db
