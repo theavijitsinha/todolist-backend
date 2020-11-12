@@ -28,20 +28,11 @@ services:
       - './backend/secrets:/secrets'
     depends_on:
       - db
-  dev:
+  frontend:
     build:
-      context: .
-    image: todolist-dev:latest
-    environment:
-        DB_USER: todolist
-        DB_HOST: db
-        DB_NAME: todolist
-        DB_PASS_FILE: /secrets/mysql-password
+      context: ./frontend
+    image: todolist-frontend:latest
     ports:
-      - "8080:8080"
-    volumes:
-      - './:/usr/src/app'
-      - '/usr/src/app/backend/node_modules'
-      - './backend/secrets:/secrets'
+      - "5000:5000"
     depends_on:
-      - db
+      - backend

@@ -1,0 +1,15 @@
+version: '3'
+  
+services:
+  backend:
+    command: [ 'npx', 'nodemon' ]
+    volumes:
+      - './backend:/usr/src/app'
+      - './backend/secrets:/secrets'
+  frontend:
+    command: [ 'npm', 'run', 'start' ]
+    environment:
+        HOST: "0.0.0.0"
+        PORT: "5000"
+    volumes:
+      - './frontend:/usr/src/app'
