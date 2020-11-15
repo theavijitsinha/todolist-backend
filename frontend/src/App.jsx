@@ -12,11 +12,12 @@ class TaskList extends React.Component {
       editingTaskID: null
     };
 
-    this.setEditing = this.setEditing.bind(this)
-    this.cancelEditing = this.cancelEditing.bind(this)
-    this.addTask = this.addTask.bind(this)
-    this.updateTask = this.updateTask.bind(this)
-    this.deleteTask = this.deleteTask.bind(this)
+    this.setEditing = this.setEditing.bind(this);
+    this.cancelEditing = this.cancelEditing.bind(this);
+    this.addTask = this.addTask.bind(this);
+    this.updateTask = this.updateTask.bind(this);
+    this.deleteTask = this.deleteTask.bind(this);
+    this.toggleTaskCompletionStatus = this.toggleTaskCompletionStatus.bind(this);
   }
 
   componentDidMount() {
@@ -40,9 +41,7 @@ class TaskList extends React.Component {
   }
 
   addTask(task) {
-    axios.post('http://localhost:8080/tasks', {
-      summary: task.summary,
-    })
+    axios.post('http://localhost:8080/tasks', task)
       .then(res => res.data)
       .then((task) => {
         this.addTaskToState(task)
@@ -53,9 +52,7 @@ class TaskList extends React.Component {
   }
 
   updateTask(task) {
-    axios.put('http://localhost:8080/tasks/' + task.id, {
-      summary: task.summary,
-    })
+    axios.put('http://localhost:8080/tasks/' + task.id, task)
       .then(res => res.data)
       .then((task) => {
         this.updateTaskInState(task)
@@ -70,6 +67,21 @@ class TaskList extends React.Component {
     axios.delete('http://localhost:8080/tasks/' + taskID)
       .then(() => {
         this.deleteTaskFromState(taskID)
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  }
+
+  toggleTaskCompletionStatus(taskID) {
+    const task = {
+      id: taskID,
+      completed: !this.state.tasks[taskID].completed
+    };
+    axios.put('http://localhost:8080/tasks/' + task.id, task)
+      .then(res => res.data)
+      .then((task) => {
+        this.updateTaskInState(task)
       })
       .catch(function (error) {
         console.log(error);
@@ -123,7 +135,7 @@ class TaskList extends React.Component {
           cancelEdit={this.cancelEditing} />;
       }
       return <Task key={task.id} task={task} handleEdit={this.setEditing}
-        deleteTask={this.deleteTask} />
+        deleteTask={this.deleteTask} toggleCompletion={this.toggleTaskCompletionStatus} />
     });
     tasks.push(
       <TaskAddForm key="add" addTask={this.addTask} />
@@ -134,9 +146,13 @@ class TaskList extends React.Component {
 
 class Task extends React.Component {
   render() {
+    const newCompletionStatus = this.props.task.completed ? 'not done' : 'done'
     return (
       <div>
-        {this.props.task.summary}
+        {this.props.task.summary} {this.props.task.dueDate}
+        <button onClick={() => this.props.toggleCompletion(this.props.task.id)}>
+          Mark as {newCompletionStatus}
+        </button>
         <button onClick={() => this.props.handleEdit(this.props.task.id)}>Edit</button>
         <button onClick={() => this.props.deleteTask(this.props.task.id)}>Delete</button>
       </div>
@@ -148,20 +164,24 @@ class TaskEditForm extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      task: {
-        id: this.props.task.id,
-        summary: this.props.task.summary
-      }
-    };
+    this.state = { task: Object.assign({}, this.props.task) };
 
     this.summaryUpdate = this.summaryUpdate.bind(this);
+    this.dateUpdate = this.dateUpdate.bind(this);
   }
 
   summaryUpdate(e) {
     this.setState((state) => {
       let task = state.task;
       task.summary = e.target.value;
+      return { task: task };
+    })
+  }
+
+  dateUpdate(e) {
+    this.setState((state) => {
+      let task = state.task;
+      task.dueDate = e.target.value;
       return { task: task };
     })
   }
@@ -174,6 +194,7 @@ class TaskEditForm extends React.Component {
       }}>
         <input type="text" value={this.state.task.summary} onChange={this.summaryUpdate}
           placeholder="Task" />
+        <input type="date" value={this.state.task.dueDate} onChange={this.dateUpdate} />
         <input type="submit" value="Update" />
         <input type="button" value="Cancel" onClick={this.props.cancelEdit} />
       </form>
@@ -188,12 +209,15 @@ class TaskAddForm extends React.Component {
     this.state = { task: this.getEmptyTask() };
 
     this.summaryUpdate = this.summaryUpdate.bind(this);
+    this.dateUpdate = this.dateUpdate.bind(this);
     this.clearAndAddTask = this.clearAndAddTask.bind(this);
   }
 
   getEmptyTask() {
     return {
-      summary: ''
+      completed: false,
+      summary: '',
+      dueDate: new Date().toISOString().substring(0, 10)
     };
   }
 
@@ -202,7 +226,15 @@ class TaskAddForm extends React.Component {
       let task = state.task;
       task.summary = e.target.value;
       return { task: task };
-    })
+    });
+  }
+
+  dateUpdate(e) {
+    this.setState((state) => {
+      let task = state.task;
+      task.dueDate = e.target.value;
+      return { task: task };
+    });
   }
 
   clearAndAddTask(e) {
@@ -219,6 +251,7 @@ class TaskAddForm extends React.Component {
       <form onSubmit={this.clearAndAddTask}>
         <input type="text" value={this.state.task.summary} onChange={this.summaryUpdate}
           placeholder="Task" />
+        <input type="date" value={this.state.task.dueDate} onChange={this.dateUpdate} />
         <input type="submit" value="Add" />
       </form>
     );

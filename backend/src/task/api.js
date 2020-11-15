@@ -63,7 +63,11 @@ async function getAll(req, res) {
 };
 
 async function add(req, res) {
-    const task = await Task.create({ summary: req.body.summary });
+    const task = await Task.create({
+        completed: req.body.completed,
+        summary: req.body.summary,
+        dueDate: req.body.dueDate,
+    });
     res.status(201).location('/tasks/' + task.id).json(task);
 };
 
@@ -72,7 +76,15 @@ async function get(req, res) {
 };
 
 async function update(req, res) {
-    req.task.summary = req.body.summary
+    if (req.body.hasOwnProperty('completed')) {
+        req.task.completed = req.body.completed
+    }
+    if (req.body.hasOwnProperty('summary')) {
+        req.task.summary = req.body.summary
+    }
+    if (req.body.hasOwnProperty('dueDate')) {
+        req.task.dueDate = req.body.dueDate
+    }
     await req.task.save()
     res.status(200).json(req.task);
 };

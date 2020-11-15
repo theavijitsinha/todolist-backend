@@ -15,7 +15,9 @@ exports.init = function() {
                 autoIncrement: true,
                 primaryKey: true,
             },
+            completed: sequelize.BOOLEAN,
             summary: sequelize.TEXT,
+            dueDate: sequelize.DATEONLY,
         },
         {
             sequelize: sql.conn,
