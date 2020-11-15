@@ -1,5 +1,6 @@
 'use strict';
 
+const cors = require('cors');
 const express = require('express');
 
 const tasksAPI = require('./task/api');
@@ -15,6 +16,9 @@ const app = express();
 async function start() {
     // Initialize SQL service
     await sql.init(process.env.DB_USER, process.env.DB_HOST, process.env.DB_NAME);
+
+    // Setup cors
+    app.use(cors())
 
     // Setup routes
     app.use('/tasks', tasksAPI.router(express));
