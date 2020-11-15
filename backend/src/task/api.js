@@ -63,8 +63,8 @@ async function getAll(req, res) {
 };
 
 async function add(req, res) {
-    const task = await Task.create({ description: req.body.description });
-    res.status(201).location('/tasks/' + task.id).end();
+    const task = await Task.create({ summary: req.body.summary });
+    res.status(201).location('/tasks/' + task.id).json(task);
 };
 
 async function get(req, res) {
@@ -72,9 +72,9 @@ async function get(req, res) {
 };
 
 async function update(req, res) {
-    req.task.description = req.body.description
+    req.task.summary = req.body.summary
     await req.task.save()
-    res.status(204).end();
+    res.status(200).json(req.task);
 };
 
 async function remove(req, res) {

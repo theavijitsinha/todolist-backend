@@ -15,7 +15,7 @@ exports.init = function() {
                 autoIncrement: true,
                 primaryKey: true,
             },
-            description: sequelize.TEXT,
+            summary: sequelize.TEXT,
         },
         {
             sequelize: sql.conn,
