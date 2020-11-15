@@ -1,3 +1,4 @@
+import 'bootstrap/dist/css/bootstrap.css';
 import './App.css';
 import React from 'react'
 
@@ -17,7 +18,7 @@ class TaskList extends React.Component {
     this.addTask = this.addTask.bind(this);
     this.updateTask = this.updateTask.bind(this);
     this.deleteTask = this.deleteTask.bind(this);
-    this.toggleTaskCompletionStatus = this.toggleTaskCompletionStatus.bind(this);
+    this.toggleTaskCompletion = this.toggleTaskCompletion.bind(this);
   }
 
   componentDidMount() {
@@ -73,7 +74,7 @@ class TaskList extends React.Component {
       });
   }
 
-  toggleTaskCompletionStatus(taskID) {
+  toggleTaskCompletion(taskID) {
     const task = {
       id: taskID,
       completed: !this.state.tasks[taskID].completed
@@ -130,31 +131,43 @@ class TaskList extends React.Component {
 
   render() {
     const tasks = Object.values(this.state.tasks).map((task) => {
-      if (task.id === this.state.editingTaskID) {
-        return <TaskEditForm key={task.id} task={task} updateTask={this.updateTask}
-          cancelEdit={this.cancelEditing} />;
-      }
-      return <Task key={task.id} task={task} handleEdit={this.setEditing}
-        deleteTask={this.deleteTask} toggleCompletion={this.toggleTaskCompletionStatus} />
+      return <TaskRow key={task.id} task={task} editing={task.id === this.state.editingTaskID}
+        updateTask={this.updateTask} deleteTask={this.deleteTask}
+        toggleCompletion={this.toggleTaskCompletion}
+        handleEdit={this.setEditing} cancelEdit={this.cancelEditing} />
     });
     tasks.push(
       <TaskAddForm key="add" addTask={this.addTask} />
-    )
+    );
     return tasks;
+  }
+}
+
+class TaskRow extends React.Component {
+  render() {
+    const task = this.props.task;
+    if (this.props.editing) {
+      return <TaskEditForm task={task} updateTask={this.props.updateTask}
+        cancelEdit={this.props.cancelEdit} />;
+    }
+    return <Task task={task} handleEdit={this.props.handleEdit}
+      deleteTask={this.props.deleteTask} toggleCompletion={this.props.toggleCompletion} />
   }
 }
 
 class Task extends React.Component {
   render() {
-    const newCompletionStatus = this.props.task.completed ? 'not done' : 'done'
     return (
-      <div>
-        {this.props.task.summary} {this.props.task.dueDate}
-        <button onClick={() => this.props.toggleCompletion(this.props.task.id)}>
-          Mark as {newCompletionStatus}
-        </button>
-        <button onClick={() => this.props.handleEdit(this.props.task.id)}>Edit</button>
-        <button onClick={() => this.props.deleteTask(this.props.task.id)}>Delete</button>
+      <div className="row align-items-center">
+        <input type="checkbox" className="col-auto position-static" checked={this.props.task.completed}
+          onClick={() => this.props.toggleCompletion(this.props.task.id)} />
+        {this.props.task.completed ?
+          <div className="col text-muted"><del>{this.props.task.summary}</del></div> :
+          <div className="col">{this.props.task.summary}</div>
+        }
+        <div className="col-2">{this.props.task.dueDate}</div>
+        <button className="col-1 btn-light" onClick={() => this.props.handleEdit(this.props.task.id)}>Edit</button>
+        <button className="col-1 btn-light" onClick={() => this.props.deleteTask(this.props.task.id)}>Delete</button>
       </div>
     );
   }
@@ -188,15 +201,16 @@ class TaskEditForm extends React.Component {
 
   render() {
     return (
-      <form onSubmit={(e) => {
+      <form className="row align-items-center" onSubmit={(e) => {
         this.props.updateTask(this.state.task);
         e.preventDefault();
       }}>
-        <input type="text" value={this.state.task.summary} onChange={this.summaryUpdate}
-          placeholder="Task" />
-        <input type="date" value={this.state.task.dueDate} onChange={this.dateUpdate} />
-        <input type="submit" value="Update" />
-        <input type="button" value="Cancel" onClick={this.props.cancelEdit} />
+        <input className="col" type="text" value={this.state.task.summary}
+          onChange={this.summaryUpdate} placeholder="Task" />
+        <input className="col-2" type="date" value={this.state.task.dueDate}
+          onChange={this.dateUpdate} />
+        <input className="col-1 btn-light" type="submit" value="Update" />
+        <input className="col-1 btn-light" type="button" value="Cancel" onClick={this.props.cancelEdit} />
       </form>
     );
   }
@@ -248,11 +262,11 @@ class TaskAddForm extends React.Component {
 
   render() {
     return (
-      <form onSubmit={this.clearAndAddTask}>
-        <input type="text" value={this.state.task.summary} onChange={this.summaryUpdate}
-          placeholder="Task" />
-        <input type="date" value={this.state.task.dueDate} onChange={this.dateUpdate} />
-        <input type="submit" value="Add" />
+      <form className="row align-items-center" onSubmit={this.clearAndAddTask}>
+        <input className="col" type="text" value={this.state.task.summary} onChange={this.summaryUpdate}
+          placeholder="New task" />
+        <input className="col-2" type="date" value={this.state.task.dueDate} onChange={this.dateUpdate} />
+        <input className="col-2 btn-light" type="submit" value="Add" />
       </form>
     );
   }
@@ -260,7 +274,8 @@ class TaskAddForm extends React.Component {
 
 function App() {
   return (
-    <div>
+    <div className="container">
+      <h1 className="text-center">To Do List</h1>
       <TaskList />
     </div>
   );
