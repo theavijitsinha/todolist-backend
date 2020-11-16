@@ -1,8 +1,10 @@
 import 'bootstrap/dist/css/bootstrap.css';
 import './App.css';
-import React from 'react'
+import React from 'react';
 
 const axios = require('axios');
+
+const backendTasksURL = "http://localhost:8080/tasks/";
 
 class TaskList extends React.Component {
   constructor(props) {
@@ -26,7 +28,7 @@ class TaskList extends React.Component {
   }
 
   updateTasksFromBackend() {
-    fetch("http://localhost:8080/tasks")
+    fetch(backendTasksURL)
       .then(res => res.json())
       .then(
         (result) => {
@@ -42,7 +44,7 @@ class TaskList extends React.Component {
   }
 
   addTask(task) {
-    axios.post('http://localhost:8080/tasks', task)
+    axios.post(backendTasksURL, task)
       .then(res => res.data)
       .then((task) => {
         this.addTaskToState(task)
@@ -53,7 +55,7 @@ class TaskList extends React.Component {
   }
 
   updateTask(task) {
-    axios.put('http://localhost:8080/tasks/' + task.id, task)
+    axios.put(backendTasksURL + task.id, task)
       .then(res => res.data)
       .then((task) => {
         this.updateTaskInState(task)
@@ -65,7 +67,7 @@ class TaskList extends React.Component {
   }
 
   deleteTask(taskID) {
-    axios.delete('http://localhost:8080/tasks/' + taskID)
+    axios.delete(backendTasksURL + taskID)
       .then(() => {
         this.deleteTaskFromState(taskID)
       })
@@ -79,7 +81,7 @@ class TaskList extends React.Component {
       id: taskID,
       completed: !this.state.tasks[taskID].completed
     };
-    axios.put('http://localhost:8080/tasks/' + task.id, task)
+    axios.put(backendTasksURL + task.id, task)
       .then(res => res.data)
       .then((task) => {
         this.updateTaskInState(task)
@@ -131,15 +133,17 @@ class TaskList extends React.Component {
 
   render() {
     const tasks = Object.values(this.state.tasks).map((task) => {
-      return <TaskRow key={task.id} task={task} editing={task.id === this.state.editingTaskID}
+      return <TaskRow className="border-bottom" key={task.id} task={task} editing={task.id === this.state.editingTaskID}
         updateTask={this.updateTask} deleteTask={this.deleteTask}
         toggleCompletion={this.toggleTaskCompletion}
         handleEdit={this.setEditing} cancelEdit={this.cancelEditing} />
     });
-    tasks.push(
-      <TaskAddForm key="add" addTask={this.addTask} />
+    return (
+      <div>
+        {tasks}
+        <TaskAddForm addTask={this.addTask} />
+      </div>
     );
-    return tasks;
   }
 }
 
@@ -158,12 +162,12 @@ class TaskRow extends React.Component {
 class Task extends React.Component {
   render() {
     return (
-      <div className="row align-items-center border-bottom">
+      <div className="row align-items-center">
         <input type="checkbox" className="col-auto position-static"
           checked={this.props.task.completed} readOnly={true}
           onClick={() => this.props.toggleCompletion(this.props.task.id)} />
         {this.props.task.completed ?
-          <div className="col text-muted"><del>{this.props.task.summary}</del></div> :
+          <div className="col text-muted"><s>{this.props.task.summary}</s></div> :
           <div className="col">{this.props.task.summary}</div>
         }
         <div className="col-2">{this.props.task.dueDate}</div>
@@ -212,16 +216,12 @@ class TaskEditForm extends React.Component {
 
   render() {
     return (
-      <form className="row align-items-center border-bottom" onSubmit={(e) => {
+      <form className="row align-items-center" onSubmit={(e) => {
         this.props.updateTask(this.state.task);
         e.preventDefault();
       }}>
-        <input className="col form-control" type="text" value={this.state.task.summary}
-          onChange={this.summaryUpdate} placeholder="Task" />
-        <div className="col-2 p-1">
-          <input className="form-control" type="date" value={this.state.task.dueDate}
-            onChange={this.dateUpdate} />
-        </div>
+        <TaskFormInputs task={this.state.task} summaryUpdate={this.summaryUpdate}
+          dateUpdate={this.dateUpdate} />
         <div className="col-2">
           <div className="row">
             <input className="col btn btn-outline-dark m-1" type="submit" value="Update" />
@@ -281,18 +281,28 @@ class TaskAddForm extends React.Component {
   render() {
     return (
       <form className="row align-items-center" onSubmit={this.clearAndAddTask}>
-        <input className="col form-control" type="text" value={this.state.task.summary}
-          onChange={this.summaryUpdate}
-          placeholder="New task" />
-        <div className="col-2 p-1">
-          <input className="form-control" type="date" value={this.state.task.dueDate}
-            onChange={this.dateUpdate} />
-        </div>
+        <TaskFormInputs task={this.state.task} summaryUpdate={this.summaryUpdate}
+          dateUpdate={this.dateUpdate} />
         <div className="col-2 p-1">
           <input className="col btn btn-outline-primary" type="submit" value="Add" />
         </div>
       </form>
     );
+  }
+}
+
+class TaskFormInputs extends React.Component {
+  render() {
+    return (
+      <React.Fragment>
+        <input className="col form-control" type="text" value={this.props.task.summary}
+          onChange={this.props.summaryUpdate} placeholder="New task" />
+        <div className="col-2 p-1">
+          <input className="form-control" type="date" value={this.props.task.dueDate}
+            onChange={this.props.dateUpdate} />
+        </div>
+      </React.Fragment>
+    )
   }
 }
 
